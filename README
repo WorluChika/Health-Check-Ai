@@ -1,1 +1,150 @@
-README
+# Health Check AI - Healthcare Chatbot Application
+
+A responsible AI-powered healthcare chatbot that provides general health information while emphasizing the importance of professional medical advice.
+
+## Features
+
+- **AI-Powered Responses**: Integrated with OpenAI's GPT model for intelligent health-related conversations
+- **Responsible AI**: System prompts ensure responses are informational only, not medical advice
+- **User-Friendly Interface**: Clean, responsive chat interface built with Tailwind CSS
+- **Conversation History**: Maintains context throughout the conversation
+- **Rate Limiting**: Prevents API abuse with configurable limits
+- **Security**: CORS configuration and input validation
+- **Logging**: Comprehensive logging for monitoring and debugging
+
+## Project Structure
+
+```
+health-check-ai/
+├── backend/                 # Flask backend application
+│   └── app.py              # Main Flask application
+├── frontend/               # Static frontend files
+│   └── index.html          # Chat interface
+├── requirements.txt        # Python dependencies
+├── .env.example           # Environment variables template
+└── README.md              # This file
+```
+
+## Prerequisites
+
+- Python 3.8 or higher
+- OpenAI API key
+- Modern web browser
+
+## Setup Instructions
+
+### 1. Clone or Download the Project
+
+Ensure you have the project files in your workspace.
+
+### 2. Backend Setup
+
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -r ../requirements.txt
+   ```
+
+4. Set up environment variables:
+   - Copy `.env.example` to `.env` in the root directory
+   - Add your OpenAI API key to `.env`:
+     ```
+     OPENAI_API_KEY=your_actual_openai_api_key_here
+     FLASK_ENV=development
+     FLASK_DEBUG=True
+     ```
+
+### 3. Frontend Setup
+
+The frontend is a static HTML file that communicates with the backend API. No additional setup is required.
+
+## Running the Application
+
+### Start the Backend
+
+1. Ensure you're in the backend directory with the virtual environment activated
+2. Run the Flask application:
+   ```bash
+   python app.py
+   ```
+   The backend will start on `http://localhost:5000`
+
+### Start the Frontend
+
+1. Open `frontend/index.html` in your web browser, or serve it with a simple HTTP server:
+   ```bash
+   cd frontend
+   python -m http.server 8000
+   ```
+   Then open `http://localhost:8000` in your browser.
+
+The frontend will communicate with the backend at `http://localhost:5000`.
+
+## API Endpoints
+
+- `GET /health` - Health check endpoint
+- `POST /chat` - Send a message and receive AI response
+  - Request body: `{"message": "Your question here"}`
+  - Response: `{"response": "AI answer", "disclaimer": "Disclaimer text"}`
+- `POST /clear-history` - Clear conversation history
+
+## Configuration
+
+### Environment Variables
+
+- `OPENAI_API_KEY`: Your OpenAI API key (required)
+- `FLASK_ENV`: Environment (development/production)
+- `FLASK_DEBUG`: Enable debug mode (true/false)
+
+### Rate Limiting
+
+Currently set to 10 requests per minute per IP address. Modify in `app.py` if needed.
+
+## Security Considerations
+
+- This application is for informational purposes only
+- All responses include disclaimers that the information is not medical advice
+- Rate limiting prevents API abuse
+- Input validation ensures safe message processing
+- CORS is configured for frontend-backend communication
+
+## Development
+
+### Adding New Features
+
+- Backend: Modify `app.py` to add new endpoints or functionality
+- Frontend: Edit `index.html` to update the UI or add new features
+
+### Testing
+
+- Use the `/health` endpoint to verify the backend is running
+- Test the chat functionality with various health-related questions
+
+## Deployment
+
+For production deployment:
+
+1. Use a production WSGI server (e.g., Gunicorn)
+2. Set `FLASK_ENV=production` and `FLASK_DEBUG=False`
+3. Use a reverse proxy (e.g., Nginx)
+4. Implement proper session management or database for conversation history
+5. Add authentication if needed
+6. Use environment-specific configuration
+
+## Disclaimer
+
+This application provides general health information for educational purposes only. It is not intended to be a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
+
+## License
+
+[Add your license information here]

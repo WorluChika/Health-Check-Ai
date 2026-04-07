@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Check AI - Your AI Health Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'health-blue': '#1e40af',
+                        'health-light': '#dbeafe',
+                        'health-dark': '#1e3a8a'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .chat-message {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-health-blue text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-health-blue" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 2L3 7v11a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V7l-7-5z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold">Health Check AI</h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#" class="hover:text-health-light transition-colors">Home</a>
+                <a href="#" class="hover:text-health-light transition-colors">About</a>
+                <a href="#" class="hover:text-health-light transition-colors">Contact</a>
+            </nav>
+            <button id="clearHistoryBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+                Clear History
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Chat Container -->
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Chat Messages Area -->
+            <div id="chatMessages" class="h-96 overflow-y-auto p-4 space-y-4">
+                <!-- Messages will be added here -->
+                <div class="text-center text-gray-500 py-8">
+                    <p>Welcome to Health Check AI! I'm here to provide general health information.</p>
+                    <p class="text-sm mt-2">Remember: This is not medical advice. Please consult healthcare professionals for personalized guidance.</p>
+                </div>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="border-t p-4">
+                <div class="flex space-x-2">
+                    <input
+                        type="text"
+                        id="messageInput"
+                        placeholder="Ask me about health topics..."
+                        class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-health-blue focus:border-transparent"
+                        maxlength="500"
+                    >
+                    <button
+                        id="sendButton"
+                        class="bg-health-blue hover:bg-health-dark text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Send
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    Your conversations are private and for informational purposes only.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        let isLoading = false;
+
+        // Function to add message to chat
+        function addMessage(content, isUser = false, timestamp = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = `max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                isUser 
+                    ? 'bg-health-blue text-white' 
+                    : 'bg-gray-200 text-gray-800'
+            }`;
+            
+            messageContent.innerHTML = `<p>${content}</p>`;
+            
+            if (timestamp) {
+                const timeDiv = document.createElement('div');
+                timeDiv.className = `text-xs ${isUser ? 'text-blue-200' : 'text-gray-500'} mt-1`;
+                timeDiv.textContent = timestamp;
+                messageContent.appendChild(timeDiv);
+            }
+            
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Function to show typing indicator
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'flex justify-start';
+            typingDiv.innerHTML = `
+                <div class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg">
+                    <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Function to hide typing indicator
+        function hideTyping() {
+            const typingDiv = document.getElementById('typingIndicator');
+            if (typingDiv) {
+                typingDiv.remove();
+            }
+        }
+
+        // Function to send message
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || isLoading) return;
+
+            isLoading = true;
+            sendButton.disabled = true;
+            messageInput.disabled = true;
+
+            const timestamp = new Date().toLocaleString();
+            addMessage(message, true, timestamp);
+            messageInput.value = '';
+
+            showTyping();
+
+            try {
+                const response = await fetch('http://localhost:5000/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message, timestamp })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    addMessage(data.response, false, new Date().toLocaleString());
+                    if (data.disclaimer) {
+                        addMessage(data.disclaimer, false);
+                    }
+                } else {
+                    addMessage(`Error: ${data.error}`, false);
+                }
+            } catch (error) {
+                addMessage('Sorry, I encountered an error. Please try again.', false);
+                console.error('Error:', error);
+            } finally {
+                hideTyping();
+                isLoading = false;
+                sendButton.disabled = false;
+                messageInput.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Function to clear history
+        async function clearHistory() {
+            try {
+                const response = await fetch('http://localhost:5000/clear-history', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    chatMessages.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <p>Conversation history cleared. How can I help you with health information today?</p>
+                        </div>
+                    `;
+                } else {
+                    alert('Failed to clear history');
+                }
+            } catch (error) {
+                alert('Error clearing history');
+                console.error('Error:', error);
+            }
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        clearHistoryBtn.addEventListener('click', clearHistory);
+
+        // Focus input on load
+        messageInput.focus();
+    </script>
+</body>
+</html>
